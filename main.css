@@ -9,6 +9,7 @@ body {
     border-radius: 100%;
     margin: 80 10 10 150;
     position: absolute;
+    box-sizing: border-box
 }
 
 #rotatingCircle {
@@ -16,7 +17,13 @@ body {
     width: 100px;
     border: 5px solid red;
     border-radius: 100%;
-    margin-top: 30;
+    margin-top: 40;
     margin-left: 350;
     position: absolute;
+    box-sizing: border-box
+}
+
+#trigger {
+    width: 125px;
+    height: 50px;
 }

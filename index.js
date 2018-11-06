@@ -1,60 +1,93 @@
 const mainCircle = document.createElement('div');
 const rotatingCircle = document.createElement('div');
+const triggerButton = document.createElement('button');
 
 mainCircle.setAttribute('id', 'bigCircle');
 
 rotatingCircle.setAttribute('id', 'rotatingCircle');
 
+triggerButton.setAttribute('id', 'trigger');
+triggerButton.innerHTML = "Start!";
+
 document.body.appendChild(mainCircle);
 document.body.appendChild(rotatingCircle);
+document.body.appendChild(triggerButton);
 
 const { offsetTop, offsetLeft, offsetWidth, offsetHeight } = mainCircle; // get offsets and size
 
-const mainCircleDetails = { // center and radius of the circle
-    mLeft: 150,
-    mTop: 80,
-    x: offsetLeft + offsetWidth / 2,
-    y: offsetTop  + offsetHeight / 2,
-    radius: 250
+const mainCircleDetails = { // center, radius and margins of the main circle
+    mLeftMain: 150,
+    mTopMain: 80,
+    xMain: offsetLeft + offsetWidth / 2,
+    yMain: offsetTop  + offsetHeight / 2,
+    radiusMain: 250
 }
 
-const rotatingCircleDetails = {
-    x: rotatingCircle.offsetLeft + rotatingCircle.offsetWidth / 2,
-    y: rotatingCircle.offsetTop + rotatingCircle.offsetHeight / 2,
-    radius: 50,
+const rotatingCircleDetails = { // center and radius of the rotating circle
+    xRotating: rotatingCircle.offsetLeft + rotatingCircle.offsetWidth / 2,
+    yRotating: rotatingCircle.offsetTop + rotatingCircle.offsetHeight / 2,
+    radiusRotating: 50,
     reset: function() { // recalculate the coordinates of the center
         const rotatingCircle = document.getElementById('rotatingCircle');
         const { offsetTop, offsetLeft, offsetWidth, offsetHeight } = rotatingCircle;
-        this.x = offsetLeft + offsetWidth / 2;
-        this.y = offsetTop + offsetHeight / 2;
+        this.xRotating = offsetLeft + offsetWidth / 2;
+        this.yRotating = offsetTop + offsetHeight / 2;
     }
 }
 
 const state = { // state of the smaller circle
-    mLeft: 350, 
-    mTop: 30,
-    switchX: true,
-    diff: 0.5,
-    nextY: () =>  mainCircleDetails.y - Math.sqrt(250 ** 2 - (rotatingCircleDetails.x - mainCircleDetails.x) ** 2), //calculate the y coordinate of the center
+    mLeftRotating: 350, 
+    mTopRotating: 40,
+    diff: 1,
+    nextY: () =>  { //calculate the y coordinate of the center
+        const { xMain, yMain, radiusMain } = mainCircleDetails;
+        const { xRotating } = rotatingCircleDetails;
+
+        return yMain - Math.sqrt(radiusMain ** 2 - (xRotating - xMain) ** 2);
+    },
     step: function() { // change the left margin, based on that calculate top margin
-        if (this.mLeft + 60 >= mainCircleDetails.mLeft + mainCircle.offsetWidth) { // smaller circle reaches rightmost part of the main circle
-            this.switchX = !this.switchX;
+        const { mLeftMain } = mainCircleDetails;
+        const { radiusRotating } = rotatingCircleDetails;
+
+        if (this.mLeftRotating + radiusRotating >= mLeftMain + mainCircle.offsetWidth) { // smaller circle reaches rightmost part of the main circle
             this.diff = -1 * this.diff;
-            this.nextY = () => Math.sqrt(250 ** 2 - (rotatingCircleDetails.x - mainCircleDetails.x) ** 2) + mainCircleDetails.y;
+            // switch the formula to calculate correct y coordinate
+            this.nextY = () => {
+                const { xMain, yMain, radiusMain } = mainCircleDetails;
+                const { xRotating } = rotatingCircleDetails;
+
+                return Math.sqrt(radiusMain ** 2 - (xRotating - xMain) ** 2) + yMain;
+            };
         }
 
-        if (this.mLeft + 45 <= mainCircleDetails.mLeft) { // smaller cirlce reaches leftmost part of the main circle
-            this.switchX = !this.switchX;
+        if (this.mLeftRotating + radiusRotating <= mLeftMain) { // smaller cirlce reaches leftmost part of the main circle
             this.diff = -1 * this.diff;
-            this.nextY = () => mainCircleDetails.y - Math.sqrt(250 ** 2 - (rotatingCircleDetails.x - mainCircleDetails.x) ** 2);
+            // switch the formula to calculate correct y coordinate
+            this.nextY = () =>  {
+                const { xMain, yMain, radiusMain } = mainCircleDetails;
+                const { xRotating } = rotatingCircleDetails;
+
+                return yMain - Math.sqrt(radiusMain ** 2 - (xRotating - xMain) ** 2);
+            };
         }
 
-        this.mLeft += this.diff;
-        rotatingCircle.style.marginLeft = `${this.mLeft}px`;
+        this.mLeftRotating += this.diff;
+        rotatingCircle.style.marginLeft = `${this.mLeftRotating}px`;
         rotatingCircleDetails.reset();
         const newY = this.nextY();
-        const difference = newY - rotatingCircleDetails.y;
-        rotatingCircle.style.marginTop = `${this.mTop + difference}px`;
-        this.mTop += difference;
+        const difference = newY - rotatingCircleDetails.yRotating;
+        rotatingCircle.style.marginTop = `${this.mTopRotating + difference}px`;
+        this.mTopRotating += difference;
     }
 }
+
+triggerButton.addEventListener('click', function() { // set an interval that makes a step
+    if (!this.interval) {
+        this.interval = setInterval(() => { state.step() }, 5);
+        this.innerHTML = "Stop!";
+    } else {
+        clearInterval(this.interval);
+        delete this.interval;
+        this.innerHTML = "Start!";
+    }
+});
