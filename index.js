@@ -46,6 +46,9 @@ const state = { // state of the smaller circle
     mLeftRotating: 350, 
     mTopRotating: 35,
     diff: 1,
+    points: [], // cached points
+    cached: false,
+    index: 0,
     nextY: () => { //calculate the y coordinate of the center
         const { xMain, yMain, radiusMain } = mainCircleDetails;
         const { xRotating } = rotatingCircleDetails;
@@ -77,14 +80,28 @@ const state = { // state of the smaller circle
                 return yMain - Math.sqrt(radiusMain ** 2 - (xRotating - xMain) ** 2);
             };
         }
+        // cache the points to avoid recalculation after 1st rotation
+        if (!this.cached) {
+            this.mLeftRotating += this.diff;
+            rotatingCircle.style.marginLeft = `${this.mLeftRotating}px`;
+            rotatingCircleDetails.reset();
+            const newY = this.nextY();
+            const difference = newY - rotatingCircleDetails.yRotating;
+            rotatingCircle.style.marginTop = `${this.mTopRotating + difference}px`;
+            this.mTopRotating += difference;
+            this.points.push({x: this.mLeftRotating, y: this.mTopRotating});
+        } else {
+            this.mLeftRotating = this.points[this.index].x;
+            this.mTopRotating = this.points[this.index].y;
+            this.index++;
+            rotatingCircle.style.marginLeft = `${this.mLeftRotating}px`;
+            rotatingCircle.style.marginTop = `${this.mTopRotating}px`;
+        }
 
-        this.mLeftRotating += this.diff;
-        rotatingCircle.style.marginLeft = `${this.mLeftRotating}px`;
-        rotatingCircleDetails.reset();
-        const newY = this.nextY();
-        const difference = newY - rotatingCircleDetails.yRotating;
-        rotatingCircle.style.marginTop = `${this.mTopRotating + difference}px`;
-        this.mTopRotating += difference;
+        if (this.mLeftRotating === 350 && this.mTopRotating <= 35) { // reached the top
+            this.cached = true;
+            this.index = 0;
+        }
     }
 }
 
