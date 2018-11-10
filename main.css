@@ -17,7 +17,7 @@ body {
     width: 100px;
     border: 5px solid red;
     border-radius: 100%;
-    margin-top: 40;
+    margin-top: 35;
     margin-left: 350;
     position: absolute;
     box-sizing: border-box
@@ -26,4 +26,10 @@ body {
 #trigger {
     width: 125px;
     height: 50px;
+}
+
+#untrigger {
+    width: 125px;
+    height: 50px;
+    margin-left: 20px
 }

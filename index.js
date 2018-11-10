@@ -1,17 +1,24 @@
 const mainCircle = document.createElement('div');
 const rotatingCircle = document.createElement('div');
-const triggerButton = document.createElement('button');
+const startButton = document.createElement('button');
+const stopButton = document.createElement('button');
 
 mainCircle.setAttribute('id', 'bigCircle');
 
 rotatingCircle.setAttribute('id', 'rotatingCircle');
 
-triggerButton.setAttribute('id', 'trigger');
-triggerButton.innerHTML = "Start!";
+startButton.setAttribute('id', 'trigger');
+stopButton.setAttribute('id', 'untrigger');
+
+startButton.innerHTML = "Start!";
+stopButton.innerHTML = "Stop!";
 
 document.body.appendChild(mainCircle);
 document.body.appendChild(rotatingCircle);
-document.body.appendChild(triggerButton);
+document.body.appendChild(startButton);
+document.body.appendChild(stopButton);
+
+let interval;
 
 const { offsetTop, offsetLeft, offsetWidth, offsetHeight } = mainCircle; // get offsets and size
 
@@ -20,7 +27,7 @@ const mainCircleDetails = { // center, radius and margins of the main circle
     mTopMain: 80,
     xMain: offsetLeft + offsetWidth / 2,
     yMain: offsetTop  + offsetHeight / 2,
-    radiusMain: 250
+    radiusMain: 245
 }
 
 const rotatingCircleDetails = { // center and radius of the rotating circle
@@ -37,9 +44,9 @@ const rotatingCircleDetails = { // center and radius of the rotating circle
 
 const state = { // state of the smaller circle
     mLeftRotating: 350, 
-    mTopRotating: 40,
+    mTopRotating: 35,
     diff: 1,
-    nextY: () =>  { //calculate the y coordinate of the center
+    nextY: () => { //calculate the y coordinate of the center
         const { xMain, yMain, radiusMain } = mainCircleDetails;
         const { xRotating } = rotatingCircleDetails;
 
@@ -49,7 +56,7 @@ const state = { // state of the smaller circle
         const { mLeftMain } = mainCircleDetails;
         const { radiusRotating } = rotatingCircleDetails;
 
-        if (this.mLeftRotating + radiusRotating >= mLeftMain + mainCircle.offsetWidth) { // smaller circle reaches rightmost part of the main circle
+        if (this.mLeftRotating + radiusRotating + 5 >= mLeftMain + mainCircle.offsetWidth) { // smaller circle reaches rightmost part of the main circle
             this.diff = -1 * this.diff;
             // switch the formula to calculate correct y coordinate
             this.nextY = () => {
@@ -60,10 +67,10 @@ const state = { // state of the smaller circle
             };
         }
 
-        if (this.mLeftRotating + radiusRotating <= mLeftMain) { // smaller cirlce reaches leftmost part of the main circle
+        if (this.mLeftRotating + radiusRotating <= mLeftMain + 5) { // smaller cirlce reaches leftmost part of the main circle
             this.diff = -1 * this.diff;
             // switch the formula to calculate correct y coordinate
-            this.nextY = () =>  {
+            this.nextY = () => {
                 const { xMain, yMain, radiusMain } = mainCircleDetails;
                 const { xRotating } = rotatingCircleDetails;
 
@@ -81,13 +88,15 @@ const state = { // state of the smaller circle
     }
 }
 
-triggerButton.addEventListener('click', function() { // set an interval that makes a step
-    if (!this.interval) {
-        this.interval = setInterval(() => { state.step() }, 5);
-        this.innerHTML = "Stop!";
-    } else {
-        clearInterval(this.interval);
-        delete this.interval;
-        this.innerHTML = "Start!";
+startButton.addEventListener('click', () => { // set an interval that makes a step
+    if (!interval) {
+        interval = setInterval(() => { state.step() }, 5);
     }
 });
+
+stopButton.addEventListener('click', () => {
+    if (interval) {
+        clearInterval(interval);
+        interval = undefined;
+    }
+})
